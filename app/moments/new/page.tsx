@@ -9,23 +9,30 @@ import { useUser } from "@/lib/useUser";
 import { useEffect, useState } from "react";
 
 const FormSchema = z.object({
-  title: z.string().min(1).max(120).optional(),
+  title: z.string().max(120).optional(),
   caption: z.string().max(2000).optional(),
-  date: z.string().min(1),
-  files: z.any()
+  date: z.string().min(1),   // เก็บเป็น string จาก <input type="date">
+  files: z.any().optional(), // ให้ optional ก็ได้ จะอัปโหลดหรือไม่ก็ได้
 });
+
+type FormValues = z.infer<typeof FormSchema>;  // ✅ เพิ่มบรรทัดนี้
 
 export default function NewMomentPage() {
   const { user } = useUser();
   const [coupleId, setCoupleId] = useState<string | null>(null);
-  const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm({
-    resolver: zodResolver(FormSchema),
-    defaultValues: {
-      title: "",
-      caption: "",
-      date: new Date().toISOString().slice(0,10)
-    }
-  });
+
+  // ✅ บอก generic ให้ useForm ว่าใช้ FormValues
+  const { register, handleSubmit, formState: { errors, isSubmitting }, reset } =
+    useForm<FormValues>({
+      resolver: zodResolver(FormSchema),
+      defaultValues: {
+        title: "",
+        caption: "",
+        date: new Date().toISOString().slice(0, 10),
+        // ไม่ต้องใส่ default ของ files ก็ได้
+      },
+    });
+
 
   useEffect(() => {
     if (!user) return;
